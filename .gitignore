@@ -1,0 +1,35 @@
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Media storage & output
+uploads/*
+!uploads/.gitkeep
+outputs/*
+!outputs/.gitkeep
+work/*
+!work/.gitkeep
+
+# Video binaries
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.avi
+*.m4v
+*.srt
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

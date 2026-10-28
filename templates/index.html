@@ -1,0 +1,1315 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Video Highlight Clipper — AI Short-Form Studio</title>
+  <meta name="description" content="Transform YouTube URLs and long videos into viral 9:16 vertical clips with AI speech transcription and auto-subtitles.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: #0e131f;
+      --bg-card-hover: #141b2d;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(139, 92, 246, 0.35);
+      --primary: #8b5cf6;
+      --primary-hover: #7c3aed;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+      --youtube-red: #ff0000;
+      --youtube-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+      --shadow-glow: 0 0 35px -5px rgba(139, 92, 246, 0.25);
+      --shadow-yt-glow: 0 0 35px -5px rgba(239, 68, 68, 0.35);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 15% 15%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+        radial-gradient(at 85% 20%, rgba(236, 72, 153, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 80%, rgba(139, 92, 246, 0.06) 0px, transparent 60%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navbar */
+    .navbar {
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(7, 9, 14, 0.75);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+    }
+    .brand-icon svg { width: 20px; height: 20px; fill: white; }
+    .brand-name {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+    .nav-badges {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .badge-online { color: var(--accent-emerald); border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.08); }
+    .badge-online .badge-dot { background: var(--accent-emerald); box-shadow: 0 0 8px var(--accent-emerald); }
+    .badge-yt { color: #f87171; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.08); }
+    .badge-yt .badge-dot { background: #ef4444; }
+    .badge-warn { color: var(--accent-amber); border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.08); }
+    .badge-warn .badge-dot { background: var(--accent-amber); }
+
+    /* Main Container */
+    main {
+      max-width: 1040px;
+      margin: 32px auto 80px;
+      padding: 0 20px;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      margin: 20px 0 38px;
+    }
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(139, 92, 246, 0.1);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 999px;
+      color: #c4b5fd;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.75rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+      background: linear-gradient(180deg, #ffffff 40%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      color: var(--text-muted);
+      font-size: 1.08rem;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* Workflow Stepper */
+    .stepper {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .step-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+    }
+    .step-item.active {
+      border-color: var(--border-highlight);
+      background: rgba(139, 92, 246, 0.08);
+    }
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .step-item.active .step-num {
+      background: var(--primary);
+      color: white;
+    }
+    .step-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .step-item.active .step-label { color: var(--text-main); }
+
+    /* Flash alerts */
+    .flash {
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      animation: fadeIn 0.3s ease;
+    }
+    .flash.success {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+    .flash.error {
+      background: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: #fb7185;
+    }
+
+    /* Cards / Sections */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-card);
+      transition: border-color 0.2s ease;
+    }
+    .panel:hover {
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .panel-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .panel-title-badge {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(139, 92, 246, 0.2);
+      color: #c4b5fd;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+    }
+    .panel-subtitle {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      margin-bottom: 20px;
+    }
+
+    /* Ingestion Mode Tabs */
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 5px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      margin-bottom: 22px;
+    }
+    .tab-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .tab-btn.active {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .tab-btn.active.yt-tab {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* YouTube Input Box */
+    .yt-box {
+      background: rgba(255, 255, 255, 0.015);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 24px;
+    }
+    .yt-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .yt-input-icon {
+      position: absolute;
+      left: 16px;
+      width: 24px;
+      height: 24px;
+      color: #ef4444;
+      pointer-events: none;
+    }
+    .yt-input {
+      width: 100%;
+      background: #060910;
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: var(--radius-md);
+      padding: 15px 16px 15px 50px;
+      font-size: 1.02rem;
+      font-family: inherit;
+      transition: all 0.25s ease;
+    }
+    .yt-input:focus {
+      outline: none;
+      border-color: #ef4444;
+      box-shadow: var(--shadow-yt-glow);
+    }
+    .yt-options-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 14px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .checkbox-label input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--primary);
+    }
+
+    /* Upload Dropzone */
+    .dropzone {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-md);
+      padding: 40px 24px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.015);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--primary);
+      background: rgba(139, 92, 246, 0.05);
+      box-shadow: var(--shadow-glow);
+    }
+    .dropzone input[type="file"] {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .dropzone-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      border-radius: 14px;
+      background: rgba(139, 92, 246, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+    }
+    .dropzone-icon svg { width: 28px; height: 28px; fill: currentColor; }
+    .dropzone-title {
+      font-weight: 600;
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+    }
+    .dropzone-desc {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+    .file-selected-box {
+      margin-top: 18px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      text-align: left;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--primary-gradient);
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.45);
+    }
+    .btn:active {
+      transform: translateY(0);
+    }
+    .btn-yt {
+      background: var(--youtube-gradient);
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.35);
+    }
+    .btn-yt:hover {
+      box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      box-shadow: none;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+    }
+    .btn-sm {
+      padding: 7px 14px;
+      font-size: 0.84rem;
+      border-radius: var(--radius-sm);
+    }
+
+    /* Video Player & Info Card */
+    .video-info-bar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      margin-bottom: 22px;
+    }
+    .video-meta-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .meta-tag {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      text-decoration: none;
+    }
+
+    /* Model Selector Grid */
+    .model-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 16px 0 24px;
+    }
+    .model-card {
+      position: relative;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .model-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+    .model-card.selected {
+      border-color: var(--primary);
+      background: rgba(139, 92, 246, 0.08);
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+    }
+    .model-card input[type="radio"] {
+      position: absolute;
+      top: 14px; right: 14px;
+      accent-color: var(--primary);
+    }
+    .model-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .model-desc {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+
+    /* Moments Cards */
+    .moments-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .moment-card {
+      background: var(--bg-card-hover);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      transition: all 0.2s ease;
+    }
+    .moment-card:hover {
+      border-color: rgba(139, 92, 246, 0.35);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+    .moment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .moment-score {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.12);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+    .moment-inputs-grid {
+      display: grid;
+      grid-template-columns: 140px 140px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .input-group label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+    .input-field {
+      width: 100%;
+      background: #080c14;
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.2s ease;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .duration-indicator {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      white-space: nowrap;
+    }
+    .moment-transcript {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      line-height: 1.5;
+      font-style: italic;
+    }
+
+    /* Output Clips Showcase */
+    .clips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 16px;
+    }
+    .clip-card {
+      background: var(--bg-card-hover);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.2s ease;
+    }
+    .clip-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-glow);
+    }
+    .clip-preview-frame {
+      aspect-ratio: 9/16;
+      max-height: 380px;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .clip-preview-frame video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .clip-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-grow: 1;
+    }
+    .clip-title {
+      font-weight: 700;
+      font-size: 1rem;
+      line-height: 1.3;
+    }
+    .clip-meta {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+    }
+
+    /* Diagnostics Section */
+    .diag-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      align-items: center;
+    }
+    .diag-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .diag-label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .diag-val {
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .copy-cmd {
+      background: #060910;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-family: monospace;
+      font-size: 0.82rem;
+      color: #a5b4fc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(139, 92, 246, 0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.1rem; }
+      .stepper { grid-template-columns: 1fr 1fr; }
+      .model-grid { grid-template-columns: 1fr; }
+      .moment-inputs-grid { grid-template-columns: 1fr 1fr; }
+      .video-info-bar { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="{{ url_for('index') }}" class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+        </div>
+        <span class="brand-name">Highlight Clipper AI</span>
+      </a>
+      <div class="nav-badges">
+        <span class="badge badge-yt">
+          <span class="badge-dot"></span> YouTube Engine Active
+        </span>
+        <span class="badge badge-online">
+          <span class="badge-dot"></span> Faster-Whisper Int8
+        </span>
+        {% if system_status and system_status.ffmpeg %}
+          <span class="badge badge-online"><span class="badge-dot"></span> FFmpeg 1080x1920</span>
+        {% else %}
+          <span class="badge badge-warn"><span class="badge-dot"></span> FFmpeg (Not Detected)</span>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Banner -->
+    <section class="hero">
+      <div class="hero-pill">✨ Automated Video Virality Pipeline</div>
+      <h1>Turn YouTube Videos & Long Clips into Viral 9:16 Shorts</h1>
+      <p>Paste any YouTube URL or upload horizontal video footage. Our local AI transcribes speech, detects the most exciting moments, and exports ready-to-post vertical clips with subtitles.</p>
+    </section>
+
+    <!-- Workflow Progress Stepper -->
+    <div class="stepper">
+      <div class="step-item {% if not state %}active{% endif %}">
+        <div class="step-num">1</div>
+        <div class="step-label">Input Video</div>
+      </div>
+      <div class="step-item {% if state and not state.segments %}active{% endif %}">
+        <div class="step-num">2</div>
+        <div class="step-label">AI Transcribe</div>
+      </div>
+      <div class="step-item {% if state and state.moments and not state.clips %}active{% endif %}">
+        <div class="step-num">3</div>
+        <div class="step-label">Select Moments</div>
+      </div>
+      <div class="step-item {% if state and state.clips %}active{% endif %}">
+        <div class="step-num">4</div>
+        <div class="step-label">Export Clips</div>
+      </div>
+    </div>
+
+    <!-- Flashed notifications -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">
+            {% if category == 'success' %}
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            {% else %}
+              <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            {% endif %}
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Step 1: Input Video Panel (YouTube URL + Upload) -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          1. Choose Input Method
+          <span class="panel-title-badge">Step 1</span>
+        </h2>
+      </div>
+
+      <!-- Ingestion Mode Tabs -->
+      <div class="tab-bar">
+        <button type="button" class="tab-btn active yt-tab" id="tab-btn-yt" onclick="switchTab('youtube')">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          Paste YouTube URL
+        </button>
+        <button type="button" class="tab-btn" id="tab-btn-upload" onclick="switchTab('upload')">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+          Upload Local Video File
+        </button>
+      </div>
+
+      <!-- Tab Content: YouTube Link -->
+      <div id="tab-content-yt">
+        <form action="{{ url_for('youtube_process') }}" method="post" id="youtube-form">
+          <div class="yt-box">
+            <div class="yt-input-wrapper">
+              <svg class="yt-input-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              <input type="url" class="yt-input" name="youtube_url" id="youtube_url" placeholder="Paste YouTube video or Shorts link (e.g. https://www.youtube.com/watch?v=...)" required>
+            </div>
+
+            <div class="yt-options-row">
+              <label class="checkbox-label">
+                <input type="checkbox" name="auto_transcribe" value="1" checked>
+                <span><strong>⚡ Auto-transcribe & find viral moments</strong> immediately after download</span>
+              </label>
+
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:0.82rem; color:var(--text-dim);">Whisper Engine:</span>
+                <select name="model_size" style="background:#0b0f19; color:#f8fafc; border:1px solid var(--border-subtle); border-radius:6px; padding:6px 10px; font-size:0.84rem;">
+                  <option value="tiny">Tiny (Fastest)</option>
+                  <option value="base" selected>Base (Recommended)</option>
+                  <option value="small">Small (High Accuracy)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-top:20px; text-align:right;">
+              <button type="submit" class="btn btn-yt">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+                Fetch & Process YouTube Video →
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tab Content: File Upload -->
+      <div id="tab-content-upload" style="display:none;">
+        <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" id="upload-form">
+          <div class="dropzone" id="dropzone">
+            <input id="video" type="file" name="video" accept=".mp4,.mov,.mkv,.webm,.avi,.m4v">
+            <div class="dropzone-icon">
+              <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+            </div>
+            <div class="dropzone-title">Click to browse or drop local video file here</div>
+            <div class="dropzone-desc">Supported: MP4, MOV, MKV, WEBM, AVI, M4V (up to 2 GB)</div>
+          </div>
+
+          <div class="file-selected-box" id="file-selected-box">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <svg width="22" height="22" fill="#8b5cf6" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+              <div>
+                <div id="file-name-preview" style="font-weight:600; font-size:0.92rem;">filename.mp4</div>
+                <div id="file-size-preview" style="font-size:0.8rem; color:var(--text-dim);">0 MB</div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-sm">
+              Upload Video →
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    {% if state %}
+      <!-- Step 2: Transcription & Video Info Panel -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            2. Video AI Transcription
+            <span class="panel-title-badge">Step 2</span>
+          </h2>
+          {% if state.source_type == 'youtube' %}
+            <span class="badge badge-yt"><span class="badge-dot"></span> YouTube Video Active</span>
+          {% else %}
+            <span class="badge badge-online"><span class="badge-dot"></span> Uploaded Video Active</span>
+          {% endif %}
+        </div>
+
+        <!-- Video metadata & preview -->
+        <div class="video-info-bar">
+          <div>
+            <div style="font-size:1.1rem; font-weight:700;">{{ state.original_name }}</div>
+            <div class="video-meta-tags">
+              <span class="meta-tag">⏱️ Duration: <strong>{{ "%.2f"|format(state.duration) }}s</strong> (~{{ (state.duration / 60)|round(1) }} min)</span>
+              <span class="meta-tag">🌐 Detected Language: <strong>{{ state.language|upper }}</strong></span>
+              {% if state.source_url %}
+                <a href="{{ state.source_url }}" target="_blank" class="meta-tag" style="color:#f87171; display:inline-flex; align-items:center; gap:4px;">
+                  <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                  Original YouTube Link ↗
+                </a>
+              {% endif %}
+              <span class="meta-tag">📁 Internal ID: <code>{{ state.video_id }}</code></span>
+            </div>
+          </div>
+          {% if state.filename %}
+          <div style="max-width:260px;">
+            <video id="source-preview-player" controls preload="metadata" style="width:100%; border-radius:8px; max-height:130px; background:#000;">
+              <source src="{{ url_for('uploaded_file', filename=state.filename) }}" type="video/mp4">
+              Your browser does not support HTML5 video preview.
+            </video>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if not state.segments %}
+        <form action="{{ url_for('transcribe', video_id=video_id) }}" method="post" id="transcribe-form">
+          <label style="font-weight:600; font-size:0.95rem; margin-bottom:8px; display:block;">Select Faster-Whisper Model Engine</label>
+          <div class="model-grid">
+            <label class="model-card" onclick="selectModel('tiny')">
+              <input type="radio" name="model_size" value="tiny" id="model-tiny">
+              <div class="model-title">⚡ Tiny</div>
+              <div class="model-desc">Fastest inference. 39M params. Best for fast CPU testing and clear speech.</div>
+            </label>
+            <label class="model-card selected" onclick="selectModel('base')">
+              <input type="radio" name="model_size" value="base" id="model-base" checked>
+              <div class="model-title">⚖️ Base (Recommended)</div>
+              <div class="model-desc">Balanced speed and accuracy. 74M params. Great for podcasts and talking heads.</div>
+            </label>
+            <label class="model-card" onclick="selectModel('small')">
+              <input type="radio" name="model_size" value="small" id="model-small">
+              <div class="model-title">🎯 Small</div>
+              <div class="model-desc">Higher accuracy. 244M params. Handles heavy accents, slang, and ambient noise.</div>
+            </label>
+          </div>
+
+          <button type="submit" class="btn" id="btn-transcribe">
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+            Transcribe & Detect Viral Moments
+          </button>
+        </form>
+        {% else %}
+        <div style="background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.25); border-radius:var(--radius-sm); padding:12px 16px; display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:10px; color:#34d399; font-size:0.92rem;">
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <span>Transcription complete: <strong>{{ state.segments|length }} phrases processed</strong>.</span>
+          </div>
+          <form action="{{ url_for('transcribe', video_id=video_id) }}" method="post" style="margin:0;">
+            <input type="hidden" name="model_size" value="base">
+            <button type="submit" class="btn btn-secondary btn-sm">Re-Transcribe ↻</button>
+          </form>
+        </div>
+        {% endif %}
+      </section>
+
+      <!-- Step 3: Moments Selection Panel -->
+      {% if state.moments %}
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            3. Curate & Customize Viral Moments
+            <span class="panel-title-badge">{{ state.moments|length }} Highlights Detected</span>
+          </h2>
+        </div>
+        <p class="panel-subtitle">Review suggested moments, adjust timestamps, and refine clip titles. Clips will be automatically reframed to vertical 9:16 with burned-in subtitles.</p>
+
+        <form action="{{ url_for('make_clips', video_id=video_id) }}" method="post" id="clips-form">
+          <div class="moments-container">
+            {% for moment in state.moments %}
+            <div class="moment-card">
+              <div class="moment-header">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <input type="checkbox" name="chosen" value="{{ loop.index0 }}" checked style="accent-color:var(--primary); width:18px; height:18px;">
+                  <strong style="font-size:1.05rem;">{{ moment.title }}</strong>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="moment-score">
+                    🔥 Virality Score: {{ moment.score }}/10
+                  </span>
+                  {% if state.filename %}
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="seekVideo({{ moment.start }})" title="Seek video player to this timestamp">
+                    ▶ Play Segment
+                  </button>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="moment-inputs-grid">
+                <div class="input-group">
+                  <label>Start (seconds)</label>
+                  <input type="number" class="input-field moment-start" name="start[]" min="0" max="{{ state.duration }}" step="0.1" value="{{ moment.start }}" required oninput="updateDuration(this)">
+                </div>
+                <div class="input-group">
+                  <label>End (seconds)</label>
+                  <input type="number" class="input-field moment-end" name="end[]" min="0" max="{{ state.duration }}" step="0.1" value="{{ moment.end }}" required oninput="updateDuration(this)">
+                </div>
+                <div class="input-group">
+                  <label>Clip Title / Hook</label>
+                  <input type="text" class="input-field" name="title[]" value="{{ moment.title }}" maxlength="100">
+                </div>
+                <div class="duration-indicator">
+                  Duration: <span class="calc-dur">{{ "%.1f"|format(moment.end - moment.start) }}</span>s
+                </div>
+              </div>
+
+              <div class="moment-transcript">
+                "{{ moment.text }}"
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <button type="submit" class="btn" id="btn-make-clips">
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm0 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm15.5-16.5-6.5 6.5 2.5 2.5 7.5-7.5V3.5h-3.5z"/></svg>
+              Render Vertical 9:16 Clips with Subtitles
+            </button>
+            <span style="color:var(--text-dim); font-size:0.86rem;">Up to 8 clips rendered per batch.</span>
+          </div>
+        </form>
+      </section>
+      {% elif state.segments %}
+      <section class="panel">
+        <div style="text-align:center; padding:24px 0;">
+          <h3 style="font-size:1.2rem; margin-bottom:8px;">Transcription completed</h3>
+          <p style="color:var(--text-muted); max-width:550px; margin:0 auto;">
+            The speech transcription finished successfully ({{ state.segments|length }} phrases), but no high-impact viral moments triggered the current keyword threshold. You can manually adjust the scoring in <code>app.py</code> or try another Whisper model.
+          </p>
+        </div>
+      </section>
+      {% endif %}
+
+      <!-- Step 4: Exported Clips Panel -->
+      {% if state.clips %}
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            4. Ready for Export
+            <span class="panel-title-badge">{{ state.clips|length }} Clips Rendered</span>
+          </h2>
+        </div>
+        <p class="panel-subtitle">Your vertical 9:16 clips are rendered with styled subtitles and audio synchronization. Preview and download below:</p>
+
+        <div class="clips-grid">
+          {% for clip in state.clips %}
+          <div class="clip-card">
+            <div class="clip-preview-frame">
+              <video controls preload="metadata">
+                <source src="{{ url_for('output_file', filename=clip.filename) }}" type="video/mp4">
+              </video>
+            </div>
+            <div class="clip-body">
+              <div class="clip-title">{{ clip.title }}</div>
+              <div class="clip-meta">
+                ⏱️ {{ clip.duration }}s · Range: {{ "%.1f"|format(clip.start) }}s - {{ "%.1f"|format(clip.end) }}s
+              </div>
+              <a class="btn btn-sm" href="{{ url_for('output_file', filename=clip.filename) }}" download>
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                Download MP4
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+    {% endif %}
+
+    <!-- Environment & Architecture Diagnostics -->
+    <section class="panel" style="background:rgba(10, 14, 23, 0.6); margin-top:40px;">
+      <div class="panel-header">
+        <h3 style="font-size:1.05rem; font-weight:700; color:var(--text-muted);">
+          System & Engine Diagnostics
+        </h3>
+      </div>
+      <div class="diag-box">
+        <div class="diag-item">
+          <span class="diag-label">YouTube Ingestion</span>
+          <span class="diag-val" style="color:#f87171;">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/></svg>
+            yt-dlp Engine Active
+          </span>
+        </div>
+        <div class="diag-item">
+          <span class="diag-label">Whisper AI Runtime</span>
+          <span class="diag-val" style="color:var(--accent-emerald);">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            Faster-Whisper (Int8 VAD)
+          </span>
+        </div>
+        <div class="diag-item">
+          <span class="diag-label">Video Demuxer</span>
+          <span class="diag-val" style="color:var(--accent-emerald);">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            PyAV (In-Process Fallback)
+          </span>
+        </div>
+        <div class="diag-item">
+          <span class="diag-label">FFmpeg Encoding Pipeline</span>
+          {% if system_status and system_status.ffmpeg %}
+            <span class="diag-val" style="color:var(--accent-emerald);">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              Installed & Available
+            </span>
+          {% else %}
+            <span class="diag-val" style="color:var(--accent-amber);">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              Install with PowerShell:
+            </span>
+            <div class="copy-cmd" onclick="copyInstallCmd()" title="Click to copy install command">
+              <code>winget install Gyan.FFmpeg</code>
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Loading Modal / Overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="spinner"></div>
+    <div id="loading-text" style="font-weight:600; font-size:1.1rem; color:#f8fafc;">Processing video...</div>
+    <div id="loading-subtext" style="font-size:0.86rem; color:var(--text-muted);">Please keep this window open while AI processes your media.</div>
+  </div>
+
+  <script>
+    // Tab switching (YouTube vs Upload)
+    function switchTab(tabId) {
+      const ytBtn = document.getElementById('tab-btn-yt');
+      const uploadBtn = document.getElementById('tab-btn-upload');
+      const ytContent = document.getElementById('tab-content-yt');
+      const uploadContent = document.getElementById('tab-content-upload');
+      const videoInput = document.getElementById('video');
+      const ytInput = document.getElementById('youtube_url');
+
+      if (tabId === 'youtube') {
+        ytBtn.classList.add('active', 'yt-tab');
+        uploadBtn.classList.remove('active');
+        ytContent.style.display = 'block';
+        uploadContent.style.display = 'none';
+        ytInput.required = true;
+        if (videoInput) videoInput.required = false;
+      } else {
+        uploadBtn.classList.add('active');
+        ytBtn.classList.remove('active', 'yt-tab');
+        uploadContent.style.display = 'block';
+        ytContent.style.display = 'none';
+        if (videoInput) videoInput.required = true;
+        ytInput.required = false;
+      }
+    }
+
+    // File input dropzone preview
+    const videoInput = document.getElementById('video');
+    const dropzone = document.getElementById('dropzone');
+    const fileSelectedBox = document.getElementById('file-selected-box');
+    const fileNamePreview = document.getElementById('file-name-preview');
+    const fileSizePreview = document.getElementById('file-size-preview');
+
+    if (videoInput && dropzone) {
+      videoInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+          const file = this.files[0];
+          fileNamePreview.textContent = file.name;
+          fileSizePreview.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+          fileSelectedBox.style.display = 'flex';
+        }
+      });
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropzone.classList.add('dragover');
+        }, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropzone.classList.remove('dragover');
+        }, false);
+      });
+    }
+
+    // Model selector cards
+    function selectModel(size) {
+      document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
+      const radio = document.getElementById('model-' + size);
+      if (radio) {
+        radio.checked = true;
+        radio.closest('.model-card').classList.add('selected');
+      }
+    }
+
+    // Dynamic duration updater for moment cards
+    function updateDuration(inputEl) {
+      const card = inputEl.closest('.moment-card');
+      const start = parseFloat(card.querySelector('.moment-start').value) || 0;
+      const end = parseFloat(card.querySelector('.moment-end').value) || 0;
+      const diff = Math.max(0, end - start).toFixed(1);
+      const indicator = card.querySelector('.calc-dur');
+      if (indicator) indicator.textContent = diff;
+    }
+
+    // Video timestamp seek helper
+    function seekVideo(timeSec) {
+      const player = document.getElementById('source-preview-player');
+      if (player) {
+        player.currentTime = timeSec;
+        player.play();
+        player.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    // Loading overlay trigger
+    const overlay = document.getElementById('loading-overlay');
+    const loadingText = document.getElementById('loading-text');
+    const loadingSubtext = document.getElementById('loading-subtext');
+
+    const ytForm = document.getElementById('youtube-form');
+    if (ytForm) {
+      ytForm.addEventListener('submit', () => {
+        overlay.style.display = 'flex';
+        loadingText.textContent = 'Fetching YouTube video stream & downloading...';
+        loadingSubtext.textContent = 'Downloading media with yt-dlp and probing audio streams. Please wait...';
+      });
+    }
+
+    const uploadForm = document.getElementById('upload-form');
+    if (uploadForm) {
+      uploadForm.addEventListener('submit', () => {
+        overlay.style.display = 'flex';
+        loadingText.textContent = 'Uploading video file to workspace...';
+        loadingSubtext.textContent = 'Please keep this window open while the file uploads.';
+      });
+    }
+
+    const transcribeForm = document.getElementById('transcribe-form');
+    if (transcribeForm) {
+      transcribeForm.addEventListener('submit', () => {
+        overlay.style.display = 'flex';
+        loadingText.textContent = 'Running Whisper AI transcription & virality scoring...';
+        loadingSubtext.textContent = 'Extracting audio and transcribing segments on CPU (30-90s)...';
+      });
+    }
+
+    const clipsForm = document.getElementById('clips-form');
+    if (clipsForm) {
+      clipsForm.addEventListener('submit', () => {
+        overlay.style.display = 'flex';
+        loadingText.textContent = 'Rendering 1080x1920 vertical video & burning subtitles...';
+        loadingSubtext.textContent = 'FFmpeg is scaling, center-cropping, and styling subtitles...';
+      });
+    }
+
+    function copyInstallCmd() {
+      navigator.clipboard.writeText('winget install Gyan.FFmpeg');
+      alert('Copied to clipboard: winget install Gyan.FFmpeg');
+    }
+  </script>
+</body>
+</html>
